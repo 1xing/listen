@@ -106,9 +106,6 @@ const useStyles = makeStyles(({ palette }) => ({
     overflow: 'hidden',
     '& .item': {
       '&>img': {
-        display: 'inline-block',
-        maxWidth: '100%',
-        height: 'auto',
         borderRadius: '4px',
         overflow: 'hidden'
       },
@@ -140,7 +137,7 @@ const navs = [
     path: '/rank',
     name: '排行榜',
     icon: <EqualizerIcon />
-  },
+  }
   // {
   //   path: '/#',
   //   name: '电台',
@@ -175,7 +172,7 @@ function Find() {
   const getNewSong = async () => {
     const response = await fetch('/personalized/newsong');
     if (response.code === 200 && mountedRef.current) {
-      setNewSong(sampleSize(response.result.map((v) => v.song), 3));
+      setNewSong(sampleSize(response.result.map((v) => v.song), 6));
     }
   };
 
@@ -258,37 +255,37 @@ function Find() {
                 className="lazyload"
                 alt=""
               />
-              <div>
-                <Typography variant="subtitle2">{p.name}</Typography>
-              </div>
+              <Typography variant="subtitle2" display="block">
+                {p.name}
+              </Typography>
             </Grid>
           ))}
         </Grid>
       </div>
       <div className={styles.newSong}>
         <div className={styles.title}>
-          <h4>推荐歌单</h4>
+          <h4>新歌</h4>
           <IconButton>
             <ChevronRight />
           </IconButton>
         </div>
         <Grid container spacing={1}>
           {newSong.map((s, i) => (
-            <Grid item xs={4} className="item" key={i} zeroMinWidth>
+            <Grid item xs={4} className="item" key={i}>
               <img
                 data-expand="-10"
                 data-src={`${s.album.picUrl}?param=200y200`}
                 className="lazyload"
                 alt=""
               />
-              <div>
+              <Grid item zeroMinWidth>
                 <Typography noWrap variant="subtitle2">
                   {s.name}
                 </Typography>
                 <Typography noWrap variant="caption" display="block">
                   {s.artists.map((v) => v.name).join('/')}
                 </Typography>
-              </div>
+              </Grid>
             </Grid>
           ))}
         </Grid>

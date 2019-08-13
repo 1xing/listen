@@ -58,18 +58,20 @@ const useStyles = makeStyles(({ palette }) => ({
       left: 0,
       right: 0,
       bottom: 0,
-      overflow: 'hidden auto'
+      overflow: 'hidden auto',
+      zIndex: 1,
+      WebkitOverflowScrolling: 'touch'
     }
   }
 }));
 
 const routes = [
-  // { path: '/my', name: '我的', component: dynamic(() => import('@/views/my')) },
+  { path: '/my', name: '我的', component: dynamic(() => import('@/views/my')) },
   {
     path: '/find',
     name: '发现',
     component: dynamic(() => import('@/views/find'))
-  },
+  }
   // {
   //   path: '/village',
   //   name: '云村',

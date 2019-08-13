@@ -1,8 +1,7 @@
 import React from 'react';
 
 function My() {
-  console.count("render")
-  return <div>my view</div>;
+  return <div></div>;
 }
 
 export default My;
