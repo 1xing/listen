@@ -101,7 +101,7 @@ const useStyles = makeStyles(({ palette }) => ({
       }
     }
   },
-  newSong: {
+  album: {
     padding: '0 12px',
     overflow: 'hidden',
     '& .item': {
@@ -168,11 +168,11 @@ function Find() {
     }
   };
 
-  const [newSong, setNewSong] = useSessionStorage('newsong', []);
-  const getNewSong = async () => {
-    const response = await fetch('/personalized/newsong');
+  const [album, setAlbum] = useSessionStorage('album', []);
+  const getAlbum = async () => {
+    const response = await fetch('/album/newest');
     if (response.code === 200 && mountedRef.current) {
-      setNewSong(sampleSize(response.result.map((v) => v.song), 6));
+      setAlbum(sampleSize(response.albums, 6));
     }
   };
 
@@ -203,7 +203,7 @@ function Find() {
   useMount(() => {
     isEmpty(banners) && getBanners();
     isEmpty(personalized) && getPersonalized();
-    isEmpty(newSong) && getNewSong();
+    isEmpty(album) && getAlbum();
   });
   const styles = useStyles();
 
@@ -262,19 +262,19 @@ function Find() {
           ))}
         </Grid>
       </div>
-      <div className={styles.newSong}>
+      <div className={styles.album}>
         <div className={styles.title}>
-          <h4>新歌</h4>
+          <h4>新碟</h4>
           <IconButton>
             <ChevronRight />
           </IconButton>
         </div>
         <Grid container spacing={1}>
-          {newSong.map((s, i) => (
+          {album.map((s, i) => (
             <Grid item xs={4} className="item" key={i}>
               <img
                 data-expand="-10"
-                data-src={`${s.album.picUrl}?param=200y200`}
+                data-src={`${s.picUrl}?param=200y200`}
                 className="lazyload"
                 alt=""
               />

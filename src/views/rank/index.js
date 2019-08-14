@@ -23,7 +23,13 @@ const useStyles = makeStyles(({}) => ({
   },
   title: {
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
+    '& svg': {
+      fontSize: '1.8rem'
+    },
+    '& h3': {
+      margin: 0
+    }
   },
   content: {
     padding: '0 12px',

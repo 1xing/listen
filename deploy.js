@@ -14,9 +14,9 @@ output.on('close', function() {
 
   var conn = new (require('ssh2')).Client(),
     SERVER = {
-      DIR: '/www/wwwroot/listen.666xyz.xyz',
+      DIR: '/www/listen.666xyz.xyz',
       HOST: '666xyz.xyz',
-      PORT: '22',
+      PORT: 27443,
       USER_NAME: 'root',
       //   PSSWORD: '',
       PRIVATE_KEY: fs.readFileSync(`${require('os').homedir()}/.ssh/id_rsa`) //SSH免密登录
