@@ -16,10 +16,10 @@ import Loading from '@/components/loading';
 
 const useStyles = makeStyles(({}) => ({
   wrapper: {
-    height: '100%',
     backgroundColor: 'white',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    height: '100%',
   },
   title: {
     display: 'flex',
@@ -28,14 +28,16 @@ const useStyles = makeStyles(({}) => ({
       fontSize: '1.8rem'
     },
     '& h3': {
-      margin: 0
+      margin: 0,
+      display: 'inline'
     }
   },
   content: {
     padding: '0 12px',
     flex: 1,
-    overflow: 'hidden auto',
-    position: 'relative'
+    overflowY: 'auto',
+    position: 'relative',
+    marginBottom: '48px',
   },
   official: {
     overflow: 'hidden',
@@ -43,7 +45,8 @@ const useStyles = makeStyles(({}) => ({
       display: 'flex',
       marginBottom: '6px',
       '& img': {
-        maxWidth: '28%',
+        width: '28%',
+        height: '100%',
         borderRadius: '4px',
         overflow: 'hidden'
       },
@@ -94,11 +97,13 @@ function Rank({ history }) {
   const styles = useStyles();
   return (
     <div className={styles.wrapper}>
-      <div className={styles.title}>
-        <IconButton onClick={() => history.goBack()}>
-          <ArrowBackIcon />
-        </IconButton>
-        <h3>排行榜</h3>
+      <div>
+        <div className={styles.title}>
+          <IconButton onClick={() => history.goBack()}>
+            <ArrowBackIcon />
+          </IconButton>
+          <h3>排行榜</h3>
+        </div>
       </div>
       <div className={styles.content}>
         {loading ? (

@@ -52,15 +52,16 @@ const useStyles = makeStyles(({ palette }) => ({
     flex: 1,
     position: 'relative',
     overflow: 'hidden',
+    marginBottom: '48px',
     '& .animated': {
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      overflow: 'hidden auto',
+      overflowY: 'auto',
       zIndex: 1,
-      WebkitOverflowScrolling: 'touch'
+      WebkitOverflowScrolling: 'touch',
     }
   }
 }));

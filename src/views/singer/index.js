@@ -4,10 +4,7 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
-import {
-  useRefMounted,
-  useToggle
-} from 'react-use';
+import { useRefMounted, useToggle } from 'react-use';
 import { isEmpty } from 'lodash';
 import fetch from '@/share/fetch';
 import Loading from '@/components/loading';
@@ -47,14 +44,15 @@ const useStyles = makeStyles(({}) => ({
   content: {
     padding: '0 12px',
     flex: 1,
-    overflow: 'hidden auto',
+    overflowY: 'auto',
     position: 'relative',
+    marginBottom: '48px',
     '& .item': {
       display: 'flex',
       margin: '14px 0',
       alignItems: 'center',
       '& img': {
-        maxWidth: '14%',
+        width: '14%',
         borderRadius: '50%',
         overflow: 'hidden',
         marginRight: '12px'
@@ -143,11 +141,13 @@ function Singer({ history }) {
   const styles = useStyles();
   return (
     <div className={styles.wrapper}>
-      <div className={styles.title}>
-        <IconButton onClick={() => history.goBack()}>
-          <ArrowBackIcon />
-        </IconButton>
-        <h3>歌手分类</h3>
+      <div>
+        <div className={styles.title}>
+          <IconButton onClick={() => history.goBack()}>
+            <ArrowBackIcon />
+          </IconButton>
+          <h3>歌手分类</h3>
+        </div>
       </div>
       <div className={styles.search}>
         <div>

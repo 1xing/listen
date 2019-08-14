@@ -1,7 +1,7 @@
 import React, { cloneElement, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import * as serviceWorker from './serviceWorker';
-import { StylesProvider } from '@material-ui/styles';
+import { StylesProvider, createGenerateClassName } from '@material-ui/styles';
 import { Router, Route, Switch } from 'react-router-dom';
 import Entry from './layouts/entry';
 import { StoreProvider } from 'easy-peasy';
@@ -14,6 +14,7 @@ import { findRouteIndex } from '@/share/utils';
 import { usePrevious } from 'react-use';
 import { isUndefined } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
+import Player from './player';
 
 const slideRightRoutes = [
   {
@@ -37,7 +38,7 @@ const useStyles = makeStyles({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999,
+    zIndex: 999
   }
 });
 
@@ -81,22 +82,29 @@ const Root = ({ location }) => {
         </animated.div>
       ));
 
-
   const entryRoute = useMemo(() => <Route path="/" component={Entry} />, [
     location.pathname
   ]);
 
   return (
-    <React.Fragment>
-      <div>{routerImpl}</div>
-      {entryRoute}
-    </React.Fragment>
+    <div>
+      <div>
+        <div>{routerImpl}</div>
+        {entryRoute}
+      </div>
+      <Player />
+    </div>
   );
 };
 
+const generateClassName = createGenerateClassName({
+  productionPrefix: 'css-',
+  disableGlobal: true
+});
+
 ReactDOM.render(
   <StoreProvider store={store}>
-    <StylesProvider>
+    <StylesProvider generateClassName={generateClassName} injectFirst>
       <Router history={history}>
         <Route path="/" component={Root} />
       </Router>

@@ -16,10 +16,11 @@ import Chip from '@material-ui/core/Chip';
 
 const useStyles = makeStyles(({}) => ({
   wrapper: {
-    height: '100%',
     backgroundColor: 'white',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    height: '100%',
+    minHeight: 0
   },
   title: {
     display: 'flex',
@@ -35,8 +36,10 @@ const useStyles = makeStyles(({}) => ({
   index: {
     padding: '0 12px',
     flex: 1,
-    overflow: 'hidden auto',
-    position: 'relative'
+    overflowY: 'auto',
+    position: 'relative',
+    marginBottom: '48px',
+    
   },
   hot: {
     margin: '0 -12px',
@@ -45,7 +48,7 @@ const useStyles = makeStyles(({}) => ({
       alignItems: 'center',
       margin: '12px 0',
       '& .number': {
-        minWidth: '2em',
+        minWidth: '2.5em',
         textAlign: 'center',
         '&.active': {
           color: 'red'
@@ -59,7 +62,7 @@ const useStyles = makeStyles(({}) => ({
         '&>img': {
           // height:'24px'
           height: '14px'
-        },
+        }
       }
     }
   },
@@ -115,19 +118,21 @@ function Search({ history: globalHistory }) {
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.title}>
-        <IconButton onClick={() => globalHistory.goBack()}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Input
-          fullWidth
-          autoFocus
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <IconButton onClick={() => globalHistory.push('/singer')}>
-          <PersonBackIcon />
-        </IconButton>
+      <div>
+        <div className={styles.title}>
+          <IconButton onClick={() => globalHistory.goBack()}>
+            <ArrowBackIcon />
+          </IconButton>
+          <Input
+            fullWidth
+            autoFocus
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <IconButton onClick={() => globalHistory.push('/singer')}>
+            <PersonBackIcon />
+          </IconButton>
+        </div>
       </div>
       {isEmpty(result) ? (
         <div className={styles.index}>
@@ -160,7 +165,7 @@ function Search({ history: globalHistory }) {
               <h3>热搜榜</h3>
               <div className={styles.hot}>
                 {hot.map((h, i) => (
-                  <div className="item">
+                  <div className="item" key={i}>
                     <Typography
                       variant="h6"
                       className={cx('number', {
@@ -177,10 +182,7 @@ function Search({ history: globalHistory }) {
                       }}
                     >
                       <div className="top">
-                        <Typography
-                          display="inline"
-                          variant="h6"
-                        >
+                        <Typography display="inline" variant="h6">
                           {h.searchWord}
                         </Typography>
                         <Typography
