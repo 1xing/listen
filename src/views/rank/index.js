@@ -19,7 +19,7 @@ const useStyles = makeStyles(({}) => ({
     backgroundColor: 'white',
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
+    height: '100%'
   },
   title: {
     display: 'flex',
@@ -37,7 +37,7 @@ const useStyles = makeStyles(({}) => ({
     flex: 1,
     overflowY: 'auto',
     position: 'relative',
-    marginBottom: '48px',
+    marginBottom: '48px'
   },
   official: {
     overflow: 'hidden',
@@ -118,8 +118,9 @@ function Rank({ history }) {
                     <img
                       data-expand="-10"
                       data-src={`${o.coverImgUrl}?param=200y200`}
-                      className="lazyload"
+                      className="lazyload "
                       alt=""
+                      src="./loading.gif"
                     />
                     <div className="tracks">
                       {o.tracks.map((t, i) => (
@@ -144,9 +145,10 @@ function Rank({ history }) {
                   <Grid item xs={4} className="item" key={i}>
                     <img
                       data-expand="-10"
-                      src={`${m.coverImgUrl}?param=200y200`}
-                      className="lazyload"
+                      data-src={`${m.coverImgUrl}?param=200y200`}
+                      className="lazyload "
                       alt=""
+                      src="./loading.gif"
                     />
                     <Typography variant="subtitle2" display="block">
                       {m.name}

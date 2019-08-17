@@ -251,9 +251,10 @@ function Find() {
             <Grid item xs={4} className="item" key={i}>
               <img
                 data-expand="-10"
-                src={`${p.picUrl}?param=200y200`}
+                data-src={`${p.picUrl}?param=200y200`}
                 className="lazyload"
                 alt=""
+                src="./loading.gif"
               />
               <Typography variant="subtitle2" display="block">
                 {p.name}
@@ -277,6 +278,7 @@ function Find() {
                 data-src={`${s.picUrl}?param=200y200`}
                 className="lazyload"
                 alt=""
+                src="./loading.gif"
               />
               <Grid item zeroMinWidth>
                 <Typography noWrap variant="subtitle2">

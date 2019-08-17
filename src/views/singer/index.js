@@ -49,10 +49,10 @@ const useStyles = makeStyles(({}) => ({
     marginBottom: '48px',
     '& .item': {
       display: 'flex',
-      margin: '14px 0',
+      margin: '12px 0',
       alignItems: 'center',
       '& img': {
-        width: '14%',
+        width: '15%',
         borderRadius: '50%',
         overflow: 'hidden',
         marginRight: '12px'
@@ -135,7 +135,6 @@ function Singer({ history }) {
     if (isEmpty(singer)) {
       gerResult(code);
     }
-    return () => {};
   }, [code]);
 
   const styles = useStyles();
@@ -208,6 +207,7 @@ function Singer({ history }) {
                   data-src={`${s.picUrl}?param=100y100`}
                   className="lazyload"
                   alt=""
+                  src="./loading.gif"
                 />
                 <Typography variant="subtitle1" display="inline">
                   {s.name}

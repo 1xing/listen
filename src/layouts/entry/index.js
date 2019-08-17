@@ -61,7 +61,7 @@ const useStyles = makeStyles(({ palette }) => ({
       bottom: 0,
       overflowY: 'auto',
       zIndex: 1,
-      WebkitOverflowScrolling: 'touch',
+      WebkitOverflowScrolling: 'touch'
     }
   }
 }));
@@ -86,6 +86,7 @@ const routes = [
 ];
 
 function Entry({ location }) {
+
   const [open, setOpen] = useState(false);
 
   const styles = useStyles();
@@ -93,7 +94,7 @@ function Entry({ location }) {
   const routeIndex = findRouteIndex(routes, location.pathname);
 
   const prevRouteIndex = usePrevious(routeIndex);
-
+  
   const isNext = routeIndex > prevRouteIndex;
 
   const notTransform =
@@ -116,6 +117,9 @@ function Entry({ location }) {
       },0,0)`
     }
   });
+  if (location.pathname === '/') {
+    return <Redirect to="/find" />;
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -156,7 +160,6 @@ function Entry({ location }) {
               {routes.map(({ name, ...rest }) => (
                 <Route key={rest.path} {...rest} />
               ))}
-              <Redirect exact from="/" to="/find" />
             </Switch>
           </animated.div>
         ))}

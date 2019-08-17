@@ -15,6 +15,7 @@ import { usePrevious } from 'react-use';
 import { isUndefined } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import Player from './player';
+import './polyfill'
 
 const slideRightRoutes = [
   {
