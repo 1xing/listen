@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const fetch = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://94.191.43.76:3000',
   withCredentials: true
 });
 

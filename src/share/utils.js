@@ -20,3 +20,18 @@ export const findRouteIndex = (routes, pathname) => {
     })
   );
 };
+
+export const parseDuration = (duration) => {
+  let time = '';
+  let minute = (duration / 60000) | 0;
+  let second = (duration / 1000) % 60 | 0;
+  if (minute < 10) {
+    time += '0';
+  }
+  time += minute + ':';
+  if (second < 10) {
+    time += '0';
+  }
+  time += second;
+  return time;
+};

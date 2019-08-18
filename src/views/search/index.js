@@ -16,12 +16,14 @@ import Grid from '@material-ui/core/Grid';
 import Chip from '@material-ui/core/Chip';
 import Paper from '@material-ui/core/Paper';
 import SearchIcon from '@material-ui/icons/Search';
+import CloseIcon from '@material-ui/icons/Close';
 import { useTransition, animated } from 'react-spring';
 import produce from 'immer';
 import SwipeableViews from 'react-swipeable-views';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { useUpdateEffect } from 'react-use';
+import { parseDuration } from '@/share/utils'
 
 const useStyles = makeStyles(({}) => ({
   wrapper: {
@@ -40,6 +42,12 @@ const useStyles = makeStyles(({}) => ({
     },
     '& h3': {
       margin: 0
+    },
+    '& .close': {
+      padding: 0,
+      '& svg': {
+        fontSize: '1.4rem'
+      }
     },
     '& .animated': {
       position: 'absolute',
@@ -356,7 +364,9 @@ function Search({ history: globalHistory }) {
           {songs.map((s, i) => (
             <div key={i} className="item">
               <Grid item zeroMinWidth>
-                <Typography variant="subtitle1">{s.name} </Typography>
+                <Typography variant="subtitle1" noWrap>
+                  {s.name}{' '}
+                </Typography>
                 <Typography component="div" noWrap>
                   <Typography variant="caption" display="inline" noWrap>
                     {s.artists.map((v) => v.name).join('/')}
@@ -389,11 +399,13 @@ function Search({ history: globalHistory }) {
                 src="./loading.gif"
               />
               <Grid item zeroMinWidth>
-                <Typography variant="subtitle1">{a.name} </Typography>
+                <Typography variant="subtitle1" noWrap>
+                  {`${a.name} `}
+                </Typography>
                 <Typography component="div" noWrap>
                   <Typography variant="caption" display="inline">
                     {a.artists.map((v) => v.name).join('/')}
-                  </Typography>{' '}
+                  </Typography>
                   <Typography variant="caption" display="inline">
                     {new Date(a.publishTime).format('yyyy-MM-dd')}
                   </Typography>
@@ -480,7 +492,7 @@ function Search({ history: globalHistory }) {
                 </Typography>
                 <Typography component="div" noWrap>
                   <Typography variant="caption" display="inline">
-                    {`${v.playTime} `}
+                    {`${parseDuration(v.durationms)} `}
                   </Typography>
                   <Typography variant="caption" display="inline">
                     {`by ${v.creator.map((v) => v.userName).join('/')}`}
@@ -501,7 +513,26 @@ function Search({ history: globalHistory }) {
           <IconButton onClick={() => globalHistory.goBack()}>
             <ArrowBackIcon />
           </IconButton>
-          <Input fullWidth autoFocus value={text} onChange={handleChange} />
+          <Input
+            fullWidth
+            autoFocus
+            value={text}
+            onChange={handleChange}
+            endAdornment={
+              text ? (
+                <IconButton
+                  onClick={() => {
+                    setText('');
+                    setSuggest([]);
+                    setResult({});
+                  }}
+                  className="close"
+                >
+                  <CloseIcon />
+                </IconButton>
+              ) : null
+            }
+          />
           <IconButton onClick={() => globalHistory.push('/singer')}>
             <PersonBackIcon />
           </IconButton>
