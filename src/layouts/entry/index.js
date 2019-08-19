@@ -67,7 +67,7 @@ const useStyles = makeStyles(({ palette }) => ({
 }));
 
 const routes = [
-  { path: '/my', name: '我的', component: dynamic(() => import('@/views/my')) },
+  // { path: '/my', name: '我的', component: dynamic(() => import('@/views/my')) },
   {
     path: '/find',
     name: '发现',

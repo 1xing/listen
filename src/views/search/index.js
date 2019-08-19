@@ -23,7 +23,9 @@ import SwipeableViews from 'react-swipeable-views';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { useUpdateEffect } from 'react-use';
-import { parseDuration } from '@/share/utils'
+import { parseDuration } from '@/share/utils';
+import { useStoreActions } from 'easy-peasy';
+import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 
 const useStyles = makeStyles(({}) => ({
   wrapper: {
@@ -38,7 +40,7 @@ const useStyles = makeStyles(({}) => ({
     justifyContent: 'space-between',
     position: 'relative',
     '& svg': {
-      fontSize: '1.8rem'
+      fontSize: '1.6rem'
     },
     '& h3': {
       margin: 0
@@ -110,7 +112,7 @@ const useStyles = makeStyles(({}) => ({
   history: {
     '& $title': {
       '& svg': {
-        fontSize: '1.5rem'
+        fontSize: '1.6rem'
       }
     },
     '& .item': {
@@ -141,6 +143,13 @@ const useStyles = makeStyles(({}) => ({
   song: {
     paddingLeft: '12px',
     marginTop: '12px',
+    '& .title': {
+      display: 'flex',
+      alignItems: 'center',
+      '&>h3': {
+        margin: '12px 4px'
+      }
+    },
     '& .item': {
       paddingBottom: '12px',
       display: 'flex',
@@ -237,6 +246,8 @@ const types = [
 ];
 
 function Search({ history: globalHistory }) {
+  const playSingle = useStoreActions(({ play }) => play.playSingle);
+  const playAll = useStoreActions(({ play }) => play.playAll);
   const mountedRef = useRefMounted();
 
   const styles = useStyles();
@@ -361,27 +372,33 @@ function Search({ history: globalHistory }) {
       const songs = data.songs;
       return (
         <div key={type} className={styles.song}>
-          {songs.map((s, i) => (
-            <div key={i} className="item">
-              <Grid item zeroMinWidth>
-                <Typography variant="subtitle1" noWrap>
-                  {s.name}{' '}
-                </Typography>
-                <Typography component="div" noWrap>
-                  <Typography variant="caption" display="inline" noWrap>
-                    {s.artists.map((v) => v.name).join('/')}
+          <div className="title" onClick={() => playAll(songs)}>
+            <PlayCircleOutlineIcon />
+            <h3>播放全部</h3>
+          </div>
+          <div>
+            {songs.map((s, i) => (
+              <div key={i} className="item" onClick={() => playSingle(s)}>
+                <Grid item zeroMinWidth>
+                  <Typography variant="subtitle1" noWrap>
+                    {s.name}{' '}
                   </Typography>
-                  {' - '}
-                  <Typography variant="caption" display="inline">
-                    {s.album.name}
+                  <Typography component="div" noWrap>
+                    <Typography variant="caption" display="inline" noWrap>
+                      {s.artists.map((v) => v.name).join('/')}
+                    </Typography>
+                    {' - '}
+                    <Typography variant="caption" display="inline">
+                      {s.album.name}
+                    </Typography>
                   </Typography>
-                </Typography>
-              </Grid>
-              <IconButton>
-                <MoreVertIcon />
-              </IconButton>
-            </div>
-          ))}
+                </Grid>
+                <IconButton>
+                  <MoreVertIcon />
+                </IconButton>
+              </div>
+            ))}
+          </div>
         </div>
       );
     }

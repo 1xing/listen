@@ -25,7 +25,7 @@ const useStyles = makeStyles(({}) => ({
     display: 'flex',
     alignItems: 'center',
     '& svg': {
-      fontSize: '1.8rem'
+      fontSize: '1.6rem'
     },
     '& h3': {
       margin: 0,

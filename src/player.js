@@ -1,66 +1,624 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useStoreActions, useStoreState } from 'easy-peasy';
 import { useTransition, animated } from 'react-spring';
+import Loading from '@/components/loading';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import QueueMusicIcon from '@material-ui/icons/QueueMusic';
+import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
+import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import ShareIcon from '@material-ui/icons/Share';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import InvertColorsIcon from '@material-ui/icons/InvertColors';
+import MessageIcon from '@material-ui/icons/Message';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
+import SkipNextIcon from '@material-ui/icons/SkipNext';
+import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
+import RepeatIcon from '@material-ui/icons/Repeat';
+import RepeatOneIcon from '@material-ui/icons/RepeatOne';
+import ShuffleIcon from '@material-ui/icons/Shuffle';
+import { useUpdateEffect } from 'react-use';
+import Snackbar from '@material-ui/core/Snackbar';
+import SnackbarContent from '@material-ui/core/SnackbarContent';
+import { parseDuration } from '@/share/utils';
+
+const modes = [
+  {
+    mode: 0,
+    icon: <RepeatIcon />,
+    name: '列表循环'
+  },
+  {
+    mode: 1,
+    icon: <RepeatOneIcon />,
+    name: '单曲循环'
+  },
+  {
+    mode: 2,
+    icon: <ShuffleIcon />,
+    name: '随机播放'
+  }
+];
 
 const useStyles = makeStyles({
-  wrapper: {
+  '@keyframes circle': {
+    from: {
+      transform: `rotate(0deg)`
+    },
+    to: {
+      transform: `rotate(360deg)`
+    }
+  },
+  wrapper: {},
+  small: {
     position: 'fixed',
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 1000
-  },
-  small: {
+    zIndex: 1000,
     height: '48px',
     backgroundColor: 'white',
-    // borderTop: '1px solid rgba(0, 0, 0, 0.12)',
-    transformOrigin: 'left bottom'
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 12px',
+    justifyContent: 'space-between',
+    '&>h3': {
+      margin: 0
+    },
+    '& .left': {
+      display: 'flex',
+      '&>img': {
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        marginRight: '6px',
+        animation: '$circle 8s infinite linear',
+        animationPlayState: ({ playing }) => (playing ? 'running' : 'paused'),
+        overflow: 'hidden'
+      }
+    },
+    '& .right': {
+      '& button': {
+        padding: '0 4px',
+        '& svg': {
+          fontSize: '1.8rem'
+        }
+      }
+    }
   },
   full: {
-    height: '100vh',
-    backgroundColor: 'white',
-    transformOrigin: 'left bottom'
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+    zIndex: 1000,
+    backgroundColor: 'white'
+  },
+  loading: {
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+    zIndex: 1001,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+  },
+  background: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+    background: `black`,
+    '&>img': {
+      filter: `blur(60px) opacity(0.6)`,
+      height: `120%`,
+      width: `150%`,
+      marginLeft: `-25%`,
+      marginTop: `-10%`,
+      maxWidth: 'initial'
+    }
+  },
+  content: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+    zIndex: 1,
+    display: 'flex',
+    flexDirection: 'column'
+  },
+  title: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    color: 'white',
+    '& .left': {
+      display: 'flex',
+      alignItems: 'center',
+      '& .singer': {
+        color: '#666',
+        display: 'flex',
+        alignItems: 'center',
+        '&>span': {},
+        '&>svg': {
+          color: 'inherit'
+        }
+      },
+      '& h3': {
+        margin: 0
+      }
+    },
+    '& svg': {
+      color: 'white',
+      fontSize: '1.6rem'
+    }
+  },
+  middle: {
+    flex: 1,
+    overflow: 'hidden',
+    position: 'relative'
+  },
+  noLyric: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    '& .image': {
+      height: '55vw',
+      width: '55vw',
+      padding: '4px',
+      backgroundColor: `rgba(255,255,255,0.1)`,
+      borderRadius: '50%',
+      margin: '0 auto',
+      marginTop: '20%',
+      '&>img': {
+        height: '100%',
+        width: '100%',
+        borderRadius: '50%',
+        animation: '$circle 12s infinite linear',
+        animationPlayState: ({ playing }) => (playing ? 'running' : 'paused'),
+        overflow: 'hidden'
+      }
+    },
+    '& .icons': {
+      display: 'flex',
+      justifyContent: 'space-around',
+      padding: '12px 10%',
+      alignItems: 'center',
+      '& svg': {
+        color: 'white',
+        fontSize: '1.6rem'
+      }
+    }
+  },
+  bottom: {
+    '& .timeline': {
+      display: 'flex',
+      padding: '0px 6px',
+      alignItems: 'center',
+      '&>span': {
+        padding: '0 6px',
+        color: 'white'
+      },
+      '& .middle': {
+        flex: 1,
+        position: 'relative',
+        padding: '4px 0',
+        boxSizing: 'content-box',
+        '& .background': {
+          height: '1px',
+          backgroundColor: '#999'
+        },
+        '& .content': {
+          position: 'absolute',
+          display: 'flex',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          top: 0,
+          alignItems: 'center',
+          '&>div': {
+            height: '1px',
+            width: 0,
+            backgroundColor: 'white',
+            pointerEvents: 'none'
+          },
+          '&>span': {
+            height: '8px',
+            width: '8px',
+            backgroundColor: 'white',
+            borderRadius: '50%',
+            display: 'block',
+            transition: 'transform 0.05s linear',
+            transform: ({ isTouch }) => `scale(${isTouch ? 1.5 : 1})`
+          }
+        }
+      }
+    },
+    '& .icons': {
+      display: 'flex',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      padding: '12px 10%',
+      '& svg': {
+        color: 'white',
+        fontSize: '1.8rem'
+      },
+      '& .play': {
+        '& svg': {
+          fontSize: '2.5rem'
+        }
+      }
+    }
+  },
+  snackbar: {
+    left: '50%',
+    bottom: '6%',
+    transform: 'translateX(-50%)',
+    right: 'initial',
+    '& .content': {
+      backgroundColor: '#ccc',
+      color: 'black',
+      '&>div': {
+        padding: 0
+      }
+    }
   }
 });
 
 function Player() {
-  const { screen } = useStoreState(({ play }) => play);
-  const { changeScreen } = useStoreActions(({ play }) => play);
-  const styles = useStyles();
+  const { init, screen, loading, song, playing, mode, list } = useStoreState(
+    ({ play }) => play
+  );
+  const {
+    initSuccess,
+    setScreen,
+    setPlaying,
+    toggleMode,
+    next,
+    prev
+  } = useStoreActions(({ play }) => play);
+
+  const audioRef = useRef(null);
+  const canplay = useRef(false);
+  const [isLyric, setIsLyric] = useState(false);
+  const [modeMessage, setModeMessage] = useState('');
+  const [time, setTime] = useState(0);
+  const [isTouch, setIsTouch] = useState(false);
+  const styles = useStyles({ playing, isTouch });
+
+  const play = () => {
+    setPlaying(true);
+    audioRef.current && audioRef.current.play();
+  };
+  const pause = () => {
+    setPlaying(false);
+    audioRef.current && audioRef.current.pause();
+  };
+
+  const _next = () => {
+    if (loading) {
+      return;
+    }
+    if (list.length === 1) {
+      audioRef.current.currentTime = 0;
+      return;
+    }
+    next();
+  };
+  const _prev = () => {
+    if (loading) {
+      return;
+    }
+    if (list.length === 1) {
+      audioRef.current.currentTime = 0;
+      return;
+    }
+    prev();
+  };
+
+  const initAudio = () => {
+    const handler = () => {
+      audioRef.current && audioRef.current.play();
+      initSuccess(() => {
+        document.body.removeEventListener('click', handler);
+        canplay.current = false;
+      });
+    };
+    document.body.addEventListener('click', handler);
+  };
+
+  const handleCanPlay = () => {
+    canplay.current = true;
+    if (!init) {
+      initAudio();
+    } else {
+      play();
+    }
+  };
+  const handleTimeUpdate = () => {
+    !isTouch && setTime(audioRef.current.currentTime * 1000);
+  };
+
+  const handleEnded = () => {
+    if (mode === 1) {
+      audioRef.current.currentTime = 0;
+    } else {
+      _next();
+    }
+  };
+
+  useUpdateEffect(() => {
+    const name = modes.find((m) => m.mode === mode).name;
+    setModeMessage(name);
+  }, [mode]);
 
   const transitions = useTransition(screen, null, {
     enter: {
-      opacity: 1,
-      transform: 'scale(1)'
+      opacity: 1
     },
     from: {
-      opacity: 0,
-      transform: 'scale(0)'
+      opacity: 0
     },
     leave: {
-      opacity: 0,
-      transform: 'scale(0)'
+      opacity: 0
     }
   });
 
+  const lyricTransitions = useTransition(isLyric, null, {
+    enter: {
+      opacity: 1,
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      top: 0,
+    },
+    from: {
+      opacity: 0
+    },
+    leave: {
+      opacity: 0
+    }
+  });
+
+  const touchObjRef = useRef({});
+
   return (
     <div className={styles.wrapper}>
-      {transitions.map(({ item: screen, props }) => {
+      {transitions.map(({ item: screen, props, key }) => {
         return screen === 'small' ? (
           <animated.div
             className={styles.small}
-            onClick={() => changeScreen('full')}
-            // style={props}
-          ></animated.div>
-        ) : (
-          <animated.div
-            className={styles.full}
-            onClick={() => changeScreen('small')}
+            onClick={() => song && setScreen('full')}
+            key={key}
             style={props}
-          ></animated.div>
+          >
+            {song ? (
+              <React.Fragment>
+                <div className="left">
+                  <img src={song.image} alt="" />
+                  <div>
+                    <Typography variant="body1">{song.name}</Typography>
+                    <Typography></Typography>
+                  </div>
+                </div>
+                <div className="right">
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playing ? pause() : play();
+                    }}
+                  >
+                    {playing ? (
+                      <PauseCircleOutlineIcon />
+                    ) : (
+                      <PlayCircleOutlineIcon />
+                    )}
+                  </IconButton>
+                  <IconButton>
+                    <QueueMusicIcon />
+                  </IconButton>
+                </div>
+              </React.Fragment>
+            ) : (
+              <h3>听见好音乐~</h3>
+            )}
+          </animated.div>
+        ) : (
+          <animated.div className={styles.full} style={props} key={key}>
+            <div className={styles.background}>
+              <img src={song.image} alt="" />
+            </div>
+            <div className={styles.content}>
+              <div className={styles.title}>
+                <div className="left">
+                  <IconButton onClick={() => setScreen('small')}>
+                    <ArrowBackIcon />
+                  </IconButton>
+                  <div>
+                    <h3>{song.name}</h3>
+                    <span className="singer">
+                      <span>{song.singer}</span>
+                      <ChevronRightIcon />
+                    </span>
+                  </div>
+                </div>
+                <IconButton>
+                  <ShareIcon />
+                </IconButton>
+              </div>
+              <div
+                className={styles.middle}
+                onClick={() => setIsLyric((v) => !v)}
+              >
+                {lyricTransitions.map(({ item: isLyric, props, key }) => (
+                  <animated.div style={props} key={key}>
+                    {isLyric ? (
+                      <div></div>
+                    ) : (
+                      <div className={styles.noLyric}>
+                        <div className="image">
+                          <img src={song.image} alt="" />
+                        </div>
+                        <div
+                          className="icons"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span>
+                            <FavoriteBorderIcon />
+                          </span>
+                          <span>
+                            <GetAppIcon />
+                          </span>
+                          <span>
+                            <InvertColorsIcon />
+                          </span>
+                          <span>
+                            <MessageIcon />
+                          </span>
+                          <span>
+                            <MoreVertIcon />
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </animated.div>
+                ))}
+              </div>
+              <div
+                className={styles.bottom}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="timeline">
+                  <span>{parseDuration(time)}</span>
+                  <div
+                    className="middle"
+                    onTouchStart={(e) => {
+                      const { left } = e.target.getBoundingClientRect();
+                      const width = e.target.clientWidth;
+                      const { clientX } = e.touches[0];
+                      const offsetX = clientX - left;
+                      const percent = offsetX / width;
+                      const time = song.duration * percent;
+                      audioRef.current.currentTime = time / 1000;
+                      setTime(time);
+                    }}
+                  >
+                    <div className="background" />
+                    <div className="content">
+                      <div
+                        style={{ width: `${(time / song.duration) * 100}%` }}
+                      ></div>
+                      <span
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          setIsTouch(true);
+                          const target = e.target.parentElement;
+                          const { left } = target.getBoundingClientRect();
+                          const width = target.clientWidth;
+                          touchObjRef.current = {
+                            left,
+                            width
+                          };
+                        }}
+                        onTouchMove={(e) => {
+                          e.stopPropagation();
+                          if (!isTouch) {
+                            return;
+                          }
+                          const { clientX } = e.touches[0];
+                          const { left, width } = touchObjRef.current;
+                          if (clientX < left || clientX > width + left) {
+                            return;
+                          }
+                          const offsetX = clientX - left;
+                          const percent = offsetX / width;
+                          const time = song.duration * percent;
+                          setTime(time);
+                        }}
+                        onTouchEnd={(e) => {
+                          e.stopPropagation();
+                          if (!isTouch) {
+                            return;
+                          }
+                          setIsTouch(false);
+                          audioRef.current.currentTime = time / 1000;
+                        }}
+                      ></span>
+                    </div>
+                  </div>
+                  <span>{parseDuration(song.duration)}</span>
+                </div>
+                <div className="icons">
+                  <span onClick={() => toggleMode()}>
+                    {modes.find((m) => m.mode === mode).icon}
+                  </span>
+                  <span onClick={_prev}>
+                    <SkipPreviousIcon />
+                  </span>
+                  <span
+                    className="play"
+                    onClick={() => {
+                      playing ? pause() : play();
+                    }}
+                  >
+                    {playing ? (
+                      <PauseCircleOutlineIcon />
+                    ) : (
+                      <PlayCircleOutlineIcon />
+                    )}
+                  </span>
+                  <span onClick={_next}>
+                    <SkipNextIcon />
+                  </span>
+                  <span>
+                    <QueueMusicIcon />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </animated.div>
         );
       })}
+      {loading && (
+        <div className={styles.loading}>
+          <Loading />
+        </div>
+      )}
+      <audio
+        ref={audioRef}
+        src={song ? song.url : './slience.mp3'}
+        onCanPlay={handleCanPlay}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+        onLoadStart={() => {
+          setTime(0)
+          canplay.current = false;
+        }}
+      />
+      <Snackbar
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center'
+        }}
+        open={!!modeMessage}
+        autoHideDuration={1200}
+        onClose={() => setModeMessage('')}
+        className={styles.snackbar}
+      >
+        <SnackbarContent
+          className="content"
+          message={<span>{modeMessage}</span>}
+        ></SnackbarContent>
+      </Snackbar>
     </div>
   );
 }
