@@ -1,6 +1,7 @@
 import { action, computed, thunk } from 'easy-peasy';
 import fetch from '@/share/fetch';
 import { random } from 'lodash';
+import Lyric from '@/share/lyric';
 
 export default {
   init: false,
@@ -60,19 +61,35 @@ export default {
       _song = {
         id: song.id,
         name: song.name,
-        duration: song.duration
+        duration: song.duration,
+        albumId: song.album.id,
+        lyric: null
       };
       _song.url = `https://music.163.com/song/media/outer/url?id=${song.id}.mp3`;
       _song.singer = song.artists.map((a) => a.name).join('/');
       actions.setLoading(true);
-      let response = await fetch.get('/album', {
+      let response = await fetch.get('/lyric', {
         params: {
-          id: song.album.id
+          id: song.id
         }
       });
-      if (response.code === 200) {
-        _song.image = response.album.picUrl;
+      if (response.code === 200 && response.lrc) {
+        _song.lyric = new Lyric(response.lrc.lyric);
       }
+      const a = list.find((v) => v.albumId === song.album.id);
+      if (a) {
+        _song.image = a.image;
+      } else {
+        response = await fetch.get('/album', {
+          params: {
+            id: song.album.id
+          }
+        });
+        if (response.code === 200) {
+          _song.image = response.album.picUrl;
+        }
+      }
+
       actions.setLoading(false);
     } else {
       _song = song;

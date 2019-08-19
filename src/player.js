@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useStoreActions, useStoreState } from 'easy-peasy';
 import { useTransition, animated } from 'react-spring';
@@ -25,6 +25,7 @@ import { useUpdateEffect } from 'react-use';
 import Snackbar from '@material-ui/core/Snackbar';
 import SnackbarContent from '@material-ui/core/SnackbarContent';
 import { parseDuration } from '@/share/utils';
+import cx from 'classnames';
 
 const modes = [
   {
@@ -132,7 +133,8 @@ const useStyles = makeStyles({
     top: 0,
     zIndex: 1,
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    overflow: 'hidden'
   },
   title: {
     display: 'flex',
@@ -143,7 +145,7 @@ const useStyles = makeStyles({
       display: 'flex',
       alignItems: 'center',
       '& .singer': {
-        color: '#666',
+        color: '#bbb',
         display: 'flex',
         alignItems: 'center',
         '&>span': {},
@@ -164,6 +166,33 @@ const useStyles = makeStyles({
     flex: 1,
     overflow: 'hidden',
     position: 'relative'
+  },
+  lyric: {
+    height: '100%',
+    paddingBottom: '12px',
+    boxSizing: 'border-box',
+    '& .null': {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100%',
+      color: '#bbb'
+    },
+    '& .content': {
+      overflowY: 'auto',
+      height: '100%',
+      '& .item': {
+        color: '#bbb',
+        textAlign: 'center',
+        fontSize: '14px',
+        transition: 'color 0.25s linear',
+        margin: 0,
+        padding: '6px 0',
+        '&.active': {
+          color: 'white'
+        }
+      }
+    }
   },
   noLyric: {
     height: '100%',
@@ -224,20 +253,25 @@ const useStyles = makeStyles({
           bottom: 0,
           top: 0,
           alignItems: 'center',
-          '&>div': {
+          '& .left': {
             height: '1px',
             width: 0,
             backgroundColor: 'white',
             pointerEvents: 'none'
           },
-          '&>span': {
-            height: '8px',
-            width: '8px',
-            backgroundColor: 'white',
-            borderRadius: '50%',
-            display: 'block',
-            transition: 'transform 0.05s linear',
-            transform: ({ isTouch }) => `scale(${isTouch ? 1.5 : 1})`
+          '& .right': {
+            padding: '6px',
+            boxSizing: 'border-box',
+            transform: 'translateX(-6px)',
+            '&>span': {
+              height: '8px',
+              width: '8px',
+              backgroundColor: 'white',
+              borderRadius: '50%',
+              display: 'block',
+              transition: 'transform 0.05s linear',
+              transform: ({ isTouch }) => `scale(${isTouch ? 1.5 : 1})`
+            }
           }
         }
       }
@@ -287,12 +321,61 @@ function Player() {
   } = useStoreActions(({ play }) => play);
 
   const audioRef = useRef(null);
+  const scrollRef = useRef(null);
   const canplay = useRef(false);
   const [isLyric, setIsLyric] = useState(false);
   const [modeMessage, setModeMessage] = useState('');
   const [time, setTime] = useState(0);
   const [isTouch, setIsTouch] = useState(false);
+  const [lyricIndex, setLyricIndex] = useState(-1);
   const styles = useStyles({ playing, isTouch });
+
+  useEffect(() => {
+    if (!song || !song.lyric) {
+      return;
+    }
+    setLyricIndex(song.lyric.findIndex(time));
+  }, [time]);
+
+  const scrollLyric = (behavior = 'smooth') => {
+    const dom = scrollRef.current;
+    if (!dom) {
+      return;
+    }
+    const h = dom.clientHeight;
+    const sh = dom.children[0].clientHeight;
+    const mid = h / sh / 2 - 1;
+    if (lyricIndex < mid && dom.scrollTop > mid * sh) {
+      dom.scrollTo({
+        top: 0,
+        behavior
+      });
+      return;
+    }
+    if (
+      dom.children.length - lyricIndex < mid &&
+      dom.scrollTop < (dom.children.length - mid) * h
+    ) {
+      dom.scrollTo({
+        top: (dom.children.length - mid) * h,
+        behavior
+      });
+      return;
+    }
+    dom.scrollTo({
+      top: sh * lyricIndex - h / 2 + sh,
+      behavior
+    });
+  };
+
+  useEffect(() => {
+    scrollLyric();
+  }, [lyricIndex, isLyric]);
+  useEffect(() => {
+    if (screen === 'full') {
+      scrollLyric('auto');
+    }
+  }, [screen]);
 
   const play = () => {
     setPlaying(true);
@@ -379,7 +462,7 @@ function Player() {
       left: 0,
       right: 0,
       bottom: 0,
-      top: 0,
+      top: 0
     },
     from: {
       opacity: 0
@@ -462,7 +545,28 @@ function Player() {
                 {lyricTransitions.map(({ item: isLyric, props, key }) => (
                   <animated.div style={props} key={key}>
                     {isLyric ? (
-                      <div></div>
+                      <div className={styles.lyric}>
+                        {!song.lyric ? (
+                          <div className="null">
+                            <h3>纯音乐，请欣赏</h3>
+                          </div>
+                        ) : (
+                          <div className="content" ref={scrollRef}>
+                            {song.lyric.lines.map((l, i) => {
+                              return (
+                                <p
+                                  key={i}
+                                  className={cx('item', {
+                                    active: i === lyricIndex
+                                  })}
+                                >
+                                  {l.txt}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <div className={styles.noLyric}>
                         <div className="image">
@@ -516,12 +620,14 @@ function Player() {
                     <div className="content">
                       <div
                         style={{ width: `${(time / song.duration) * 100}%` }}
+                        className="left"
                       ></div>
-                      <span
+                      <div
+                        className="right"
                         onTouchStart={(e) => {
                           e.stopPropagation();
                           setIsTouch(true);
-                          const target = e.target.parentElement;
+                          const target = e.target.parentElement.parentElement;
                           const { left } = target.getBoundingClientRect();
                           const width = target.clientWidth;
                           touchObjRef.current = {
@@ -552,7 +658,9 @@ function Player() {
                           setIsTouch(false);
                           audioRef.current.currentTime = time / 1000;
                         }}
-                      ></span>
+                      >
+                        <span></span>
+                      </div>
                     </div>
                   </div>
                   <span>{parseDuration(song.duration)}</span>
@@ -600,7 +708,7 @@ function Player() {
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
         onLoadStart={() => {
-          setTime(0)
+          setTime(0);
           canplay.current = false;
         }}
       />
