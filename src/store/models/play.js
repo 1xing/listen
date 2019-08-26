@@ -14,6 +14,12 @@ export default {
   song: computed(({ list, index }) => {
     return list[index] || null;
   }),
+  empty: action((state) => {
+    state.screen = 'small';
+    state.playing = false;
+    state.list = [];
+    state.index = -1;
+  }),
   initSuccess: action((state, callback) => {
     state.init = true;
     callback();
@@ -114,6 +120,27 @@ export default {
     }
     await actions.playSingle(list[0]);
     actions.setList([getState().list[0]].concat(list.slice(1)));
+  }),
+  delete: thunk(async (actions, id, { getState }) => {
+    let { list, index: GlobalIndex } = getState();
+    const index = list.findIndex((s) => s.id === id);
+    if (index < 0) {
+      return;
+    }
+    if (index > GlobalIndex) {
+      list = list.slice(0, index).concat(list.slice(index + 1));
+      actions.setList(list);
+    }
+    if (index === GlobalIndex) {
+      list = list.slice(0, index).concat(list.slice(index + 1));
+      actions.setList(list);
+      await actions.playSingle(list[index]);
+    }
+    if (index < GlobalIndex) {
+      list = list.slice(0, index).concat(list.slice(index + 1));
+      actions.setList(list);
+      await actions.playSingle(list[GlobalIndex - 1]);
+    }
   }),
   next: thunk(async (actions, _, { getState }) => {
     const { index, mode, list } = getState();

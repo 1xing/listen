@@ -26,6 +26,9 @@ import Snackbar from '@material-ui/core/Snackbar';
 import SnackbarContent from '@material-ui/core/SnackbarContent';
 import { parseDuration } from '@/share/utils';
 import cx from 'classnames';
+import Drawer from '@material-ui/core/Drawer';
+import DeleteIcon from '@material-ui/icons/DeleteOutline';
+import CloseIcon from '@material-ui/icons/Close';
 
 const modes = [
   {
@@ -106,7 +109,7 @@ const useStyles = makeStyles({
     right: 0,
     bottom: 0,
     top: 0,
-    zIndex: 1001,
+    zIndex: 1301,
     backgroundColor: 'rgba(0, 0, 0, 0.5)'
   },
   background: {
@@ -180,16 +183,17 @@ const useStyles = makeStyles({
     },
     '& .content': {
       overflowY: 'auto',
+      overflowX: 'hidden',
       height: '100%',
       '& .item': {
         color: '#bbb',
         textAlign: 'center',
-        fontSize: '14px',
-        transition: 'color 0.25s linear',
+        transition: 'all 0.25s linear',
         margin: 0,
         padding: '6px 0',
         '&.active': {
-          color: 'white'
+          color: 'white',
+          transform: 'scale(1.15)'
         }
       }
     }
@@ -304,20 +308,67 @@ const useStyles = makeStyles({
         padding: 0
       }
     }
+  },
+  drawer: {
+    height: '60vh',
+    backgroundColor: 'white',
+    display: 'flex',
+    flexDirection: 'column',
+    '& .top': {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingLeft: '12px',
+      borderBottom: '1px solid #ccc',
+      '&>div': {
+        display: 'flex',
+        alignItems: 'center',
+        '&>span': {
+          padding: '0 1px',
+          '& svg': {
+            verticalAlign: 'middle'
+          }
+        }
+      }
+    },
+    '& .content': {
+      flex: 1,
+      overflowY: 'auto',
+      '& .item': {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingLeft: '12px',
+        minWidth: 0,
+        '&.active': {
+          color: 'red'
+        }
+      }
+    }
   }
 });
 
 function Player() {
-  const { init, screen, loading, song, playing, mode, list } = useStoreState(
-    ({ play }) => play
-  );
+  const {
+    init,
+    screen,
+    loading,
+    song,
+    playing,
+    mode,
+    list,
+    index
+  } = useStoreState(({ play }) => play);
   const {
     initSuccess,
     setScreen,
     setPlaying,
     toggleMode,
     next,
-    prev
+    prev,
+    playSingle,
+    empty,
+    delete: globalDelete
   } = useStoreActions(({ play }) => play);
 
   const audioRef = useRef(null);
@@ -423,7 +474,7 @@ function Player() {
     if (!init) {
       initAudio();
     } else {
-      play();
+      song && play();
     }
   };
   const handleTimeUpdate = () => {
@@ -474,48 +525,25 @@ function Player() {
 
   const touchObjRef = useRef({});
 
+  const [open, setOpen] = useState(false);
+
+  const _empty = () => {
+    pause();
+    setOpen(false);
+    empty();
+  };
+  const _delete = (id) => {
+    if (list.length === 1) {
+      _empty();
+      return;
+    }
+    globalDelete(id);
+  };
+
   return (
     <div className={styles.wrapper}>
       {transitions.map(({ item: screen, props, key }) => {
-        return screen === 'small' ? (
-          <animated.div
-            className={styles.small}
-            onClick={() => song && setScreen('full')}
-            key={key}
-            style={props}
-          >
-            {song ? (
-              <React.Fragment>
-                <div className="left">
-                  <img src={song.image} alt="" />
-                  <div>
-                    <Typography variant="body1">{song.name}</Typography>
-                    <Typography></Typography>
-                  </div>
-                </div>
-                <div className="right">
-                  <IconButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playing ? pause() : play();
-                    }}
-                  >
-                    {playing ? (
-                      <PauseCircleOutlineIcon />
-                    ) : (
-                      <PlayCircleOutlineIcon />
-                    )}
-                  </IconButton>
-                  <IconButton>
-                    <QueueMusicIcon />
-                  </IconButton>
-                </div>
-              </React.Fragment>
-            ) : (
-              <h3>听见好音乐~</h3>
-            )}
-          </animated.div>
-        ) : (
+        return screen === 'full' && song ? (
           <animated.div className={styles.full} style={props} key={key}>
             <div className={styles.background}>
               <img src={song.image} alt="" />
@@ -687,12 +715,61 @@ function Player() {
                   <span onClick={_next}>
                     <SkipNextIcon />
                   </span>
-                  <span>
+                  <span onClick={() => setOpen(true)}>
                     <QueueMusicIcon />
                   </span>
                 </div>
               </div>
             </div>
+          </animated.div>
+        ) : (
+          <animated.div
+            className={styles.small}
+            onClick={() => song && setScreen('full')}
+            key={key}
+            style={props}
+          >
+            {song ? (
+              <React.Fragment>
+                <div className="left">
+                  <img src={song.image} alt="" />
+                  <div>
+                    <Typography variant="body1">{song.name}</Typography>
+                    <Typography variant="caption">
+                      {!song.lyric
+                        ? '纯音乐，请欣赏'
+                        : song.lyric.lines[lyricIndex]
+                        ? song.lyric.lines[lyricIndex].txt
+                        : ''}
+                    </Typography>
+                  </div>
+                </div>
+                <div className="right">
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playing ? pause() : play();
+                    }}
+                  >
+                    {playing ? (
+                      <PauseCircleOutlineIcon />
+                    ) : (
+                      <PlayCircleOutlineIcon />
+                    )}
+                  </IconButton>
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpen(true);
+                    }}
+                  >
+                    <QueueMusicIcon />
+                  </IconButton>
+                </div>
+              </React.Fragment>
+            ) : (
+              <h3>听见好音乐~</h3>
+            )}
           </animated.div>
         );
       })}
@@ -721,12 +798,61 @@ function Player() {
         autoHideDuration={1200}
         onClose={() => setModeMessage('')}
         className={styles.snackbar}
+        
       >
         <SnackbarContent
           className="content"
           message={<span>{modeMessage}</span>}
         ></SnackbarContent>
       </Snackbar>
+      <Drawer
+        anchor="bottom"
+        open={open}
+        onClose={() => setOpen(false)}
+        keepMounted
+      >
+        <div className={styles.drawer}>
+          <div className="top">
+            <div>
+              <span onClick={() => toggleMode()}>
+                {modes.find((m) => m.mode === mode).icon}
+              </span>
+              <span>{modes.find((m) => m.mode === mode).name}</span>
+              <span>{` (${list.length})`}</span>
+            </div>
+            <IconButton onClick={_empty}>
+              <DeleteIcon />
+            </IconButton>
+          </div>
+          <div className="content">
+            {list.map((s, i) => (
+              <div
+                key={i}
+                className={cx('item', {
+                  active: i === index
+                })}
+              >
+                <Typography
+                  noWrap
+                  component="div"
+                  onClick={() => playSingle(s)}
+                >
+                  <Typography
+                    display="inline"
+                    variant="subtitle1"
+                  >{`${s.name} - `}</Typography>
+                  <Typography display="inline" variant="caption">
+                    {s.singer || s.artists.map((a) => a.name).join('/')}
+                  </Typography>
+                </Typography>
+                <IconButton onClick={() => _delete(s.id)}>
+                  <CloseIcon />
+                </IconButton>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Drawer>
     </div>
   );
 }
